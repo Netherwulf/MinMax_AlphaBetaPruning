@@ -4,6 +4,7 @@ import random
 
 class Game(object):
 
+    # konstruktor klasy głównej - gry
     def __init__(self):
         self.board = np.zeros((7, 7), dtype=int)
         self.points_per_row_column_diagonal = np.zeros((16, 2), dtype=int)
@@ -11,8 +12,10 @@ class Game(object):
         self.counted_lines = np.zeros(16, dtype=int)
         pass
 
+    # funkcja uruchamiająca grę
     def play(self, human_player_one=False, cpu_vs_cpu=False):
         while 0 in self.board:
+            # Człowiek vs AI
             if human_player_one and not cpu_vs_cpu:
                 print(self.board)
                 chosen_x, chosen_y = [int(x) for x in
@@ -25,14 +28,19 @@ class Game(object):
                 # pierwszy gracz ma ostatni ruch
                 if 0 not in self.board:
                     break
+                # wykonywanie ruchu przez AI
                 free_fields = np.where(self.board == 0)
                 computer_chosen_index = random.randint(0, free_fields[0].size - 1)
                 self.board[free_fields[0][computer_chosen_index]][free_fields[1][computer_chosen_index]] = 2
+                # koniec wykonywania ruchu przez AI (policzenie punktów po ruchu AI)
                 self.check_results(free_fields[0][computer_chosen_index], free_fields[1][computer_chosen_index])
+            # AI vs Człowiek
             if not human_player_one and not cpu_vs_cpu:
+                # wykonywanie ruchu przez AI
                 free_fields = np.where(self.board == 0)
                 computer_chosen_index = random.randint(0, free_fields[0].size - 1)
                 self.board[free_fields[0][computer_chosen_index]][free_fields[1][computer_chosen_index]] = 1
+                # koniec wykonywania ruchu przez AI (policzenie punktów po ruchu AI)
                 self.check_results(free_fields[0][computer_chosen_index], free_fields[1][computer_chosen_index])
                 if 0 not in self.board:
                     break
@@ -44,18 +52,24 @@ class Game(object):
                                           input("Podaj współrzędne x i y wybranego pola oddzielone spacją: ").split()]
                 self.board[chosen_x][chosen_y] = 2
                 self.check_results(chosen_x, chosen_y)
+            # AI vs AI
             if cpu_vs_cpu:
                 # print(self.board)
+                # wykonywanie ruchu przez AI
                 free_fields = np.where(self.board == 0)
                 computer_chosen_index = random.randint(0, free_fields[0].size - 1)
                 self.board[free_fields[0][computer_chosen_index]][free_fields[1][computer_chosen_index]] = 1
+                # koniec wykonywania ruchu przez AI (policzenie punktów po ruchu AI)
                 self.check_results(free_fields[0][computer_chosen_index], free_fields[1][computer_chosen_index])
                 if 0 not in self.board:
                     break
+                # wykonywanie ruchu przez AI
                 free_fields = np.where(self.board == 0)
                 computer_chosen_index = random.randint(0, free_fields[0].size - 1)
                 self.board[free_fields[0][computer_chosen_index]][free_fields[1][computer_chosen_index]] = 2
+                # koniec wykonywania ruchu przez AI (policzenie punktów po ruchu AI)
                 self.check_results(free_fields[0][computer_chosen_index], free_fields[1][computer_chosen_index])
+        # prezentacja wyników końcowych
         print(self.board)
         print("Gra dobiegła końca!")
         print("Punkty gracza 1: " + str(self.players_points[0]))
@@ -67,6 +81,7 @@ class Game(object):
 
     same_values = np.array([])
 
+    # funkcja licząca punkty
     def check_results(self, row, column):
         global same_values
         # sprawdzenie i ewentualnie policzenie punktów w kolumnie
@@ -162,3 +177,93 @@ class Game(object):
                         self.players_points[int(same_values[0])-1] += same_values.size
                     break
                 number_of_iteration += 1
+
+'''
+2 Heurystyki:
+    1. suma naszych punktów + liczba pustych pól przy naszych polach (każde puste pole liczy się tyle razy ile naszych pól z nim graniczy)
+    2. suma naszych punktów - punkty przeciwnika
+'''
+
+    # funkcja oceniająca zmianę stanu planszy pod względem liczby pól, które należą do danego gracza i graniczą z wybranym polem
+    def rate_table_state_by_our_points_and_empty_fields(self, table, player):
+        value = 0
+        # ocena lewego górnego rogu
+        if move[0] == 0 and move[1] == 0:
+            if table[1][0] == player:
+                value += 2
+            elif table[1][0] == 0:
+                value += 1
+            if table[0][1] == player:
+                value += 2
+            elif table[0][1] == 0:
+                value += 1
+            return value
+        # ocena prawego górnego rogu
+        if move[0] == 0 and move[1] == 6:
+            if table[0][5] == player:
+                value += 1
+            if table[1][6] == player:
+                value += 1
+            return value
+        # ocena lewego dolnego rogu
+        if move[0] == 6 and move[1] == 0:
+            if table[5][0] == player:
+                value += 1
+            if table[6][1] == player:
+                value += 1
+            return value
+        # ocena prawego dolnego rogu
+        if move[0] == 6 and move[1] == 6:
+            if table[5][6] == player:
+                value += 1
+            if table[5][6] == player:
+                value += 1
+            return value
+        # ocena pól z lewego boku planszy
+        if 6 > move[0] > 0 == move[1]:
+            if table[move[0]-1][0] == player:
+                value += 1
+            if table[move[0]+1][0] == player:
+                value += 1
+            if table[move[0]][1] == player:
+                value += 1
+            return value
+        # ocena pól z prawego boku planszy
+        if 0 < move[0] < 6 == move[1]:
+            if table[move[0]-1][6] == player:
+                value += 1
+            if table[move[0]+1][6] == player:
+                value += 1
+            if table[move[0]][5] == player:
+                value += 1
+            return value
+        # ocena pól z górnego boku planszy
+        if move[0] == 0 < move[1] < 6:
+            if table[0][move[1] - 1] == player:
+                value += 1
+            if table[0][move[1] + 1] == player:
+                value += 1
+            if table[1][move[1]] == player:
+                value += 1
+            return value
+        # ocena pól z dolnego boku planszy
+        if move[0] == 6 > move[1] > 0:
+            if table[6][move[1] - 1] == player:
+                value += 1
+            if table[6][move[1] + 1] == player:
+                value += 1
+            if table[5][move[1]] == player:
+                value += 1
+            return value
+        # ocena pól z wewnętrznej części planszy
+        if 6 > move[0] > 0 and 6 > move[1] > 0:
+            if table[move[0] - 1][move[1]] == player:
+                value += 1
+            if table[move[0] + 1][move[1]] == player:
+                value += 1
+            if table[move[0]][move[1] - 1] == player:
+                value += 1
+            if table[move[0]][move[1] + 1] == player:
+                value += 1
+            return value
+
