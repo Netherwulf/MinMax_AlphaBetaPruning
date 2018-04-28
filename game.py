@@ -178,92 +178,222 @@ class Game(object):
                     break
                 number_of_iteration += 1
 
-'''
-2 Heurystyki:
-    1. suma naszych punktów + liczba pustych pól przy naszych polach (każde puste pole liczy się tyle razy ile naszych pól z nim graniczy)
-    2. suma naszych punktów - punkty przeciwnika
-'''
+    '''
+    2 Heurystyki do oceny stanu planszy:
+        1. suma naszych punktów + liczba pustych pól przy naszych polach (każde puste pole liczy się tyle razy ile naszych pól z nim graniczy)
+        2. suma naszych punktów - punkty przeciwnika
+    '''
 
-    # funkcja oceniająca zmianę stanu planszy pod względem liczby pól, które należą do danego gracza i graniczą z wybranym polem
-    def rate_table_state_by_our_points_and_empty_fields(self, table, player):
+    # funkcja oceniająca stan planszy pod względem liczby pól, które należą do danego gracza i pól pustych, które graniczą z wybranym polem
+    def rate_table_state_by_our_points_and_empty_fields(self, board, player):
         value = 0
-        # ocena lewego górnego rogu
-        if move[0] == 0 and move[1] == 0:
-            if table[1][0] == player:
-                value += 2
-            elif table[1][0] == 0:
-                value += 1
-            if table[0][1] == player:
-                value += 2
-            elif table[0][1] == 0:
-                value += 1
-            return value
-        # ocena prawego górnego rogu
-        if move[0] == 0 and move[1] == 6:
-            if table[0][5] == player:
-                value += 1
-            if table[1][6] == player:
-                value += 1
-            return value
-        # ocena lewego dolnego rogu
-        if move[0] == 6 and move[1] == 0:
-            if table[5][0] == player:
-                value += 1
-            if table[6][1] == player:
-                value += 1
-            return value
-        # ocena prawego dolnego rogu
-        if move[0] == 6 and move[1] == 6:
-            if table[5][6] == player:
-                value += 1
-            if table[5][6] == player:
-                value += 1
-            return value
-        # ocena pól z lewego boku planszy
-        if 6 > move[0] > 0 == move[1]:
-            if table[move[0]-1][0] == player:
-                value += 1
-            if table[move[0]+1][0] == player:
-                value += 1
-            if table[move[0]][1] == player:
-                value += 1
-            return value
-        # ocena pól z prawego boku planszy
-        if 0 < move[0] < 6 == move[1]:
-            if table[move[0]-1][6] == player:
-                value += 1
-            if table[move[0]+1][6] == player:
-                value += 1
-            if table[move[0]][5] == player:
-                value += 1
-            return value
-        # ocena pól z górnego boku planszy
-        if move[0] == 0 < move[1] < 6:
-            if table[0][move[1] - 1] == player:
-                value += 1
-            if table[0][move[1] + 1] == player:
-                value += 1
-            if table[1][move[1]] == player:
-                value += 1
-            return value
-        # ocena pól z dolnego boku planszy
-        if move[0] == 6 > move[1] > 0:
-            if table[6][move[1] - 1] == player:
-                value += 1
-            if table[6][move[1] + 1] == player:
-                value += 1
-            if table[5][move[1]] == player:
-                value += 1
-            return value
-        # ocena pól z wewnętrznej części planszy
-        if 6 > move[0] > 0 and 6 > move[1] > 0:
-            if table[move[0] - 1][move[1]] == player:
-                value += 1
-            if table[move[0] + 1][move[1]] == player:
-                value += 1
-            if table[move[0]][move[1] - 1] == player:
-                value += 1
-            if table[move[0]][move[1] + 1] == player:
-                value += 1
-            return value
+        global same_values
 
+        # policzenie punktów w kolumnach
+        for column in range(8):
+            same_values = np.array([])
+            number_of_iteration = 0
+            for i in board[:, column]:
+                if same_values.size == 0 and i != 0:
+                    same_values = np.append(same_values, i)
+                else:
+                    if same_values[-1] == i:
+                        same_values = np.append(same_values, i)
+                    else:
+                        if same_values.size >= 2 and same_values[0] == player:
+                            value += same_values.size
+                        same_values = np.array([])
+                        if i != 0:
+                            same_values = np.append(same_values, i)
+                if number_of_iteration == 6 and same_values.size != 0:
+                    if same_values.size >= 2 and same_values[0] == player:
+                        value += same_values.size
+                    break
+                number_of_iteration += 1
+
+        # policzenie punktów w wierszach
+        for row in range(8):
+            same_values = np.array([])
+            number_of_iteration = 0
+            for i in board[row, :]:
+                if same_values.size == 0 and i != 0:
+                    same_values = np.append(same_values, i)
+                else:
+                    if same_values[-1] == i:
+                        same_values = np.append(same_values, i)
+                    else:
+                        if same_values.size >= 2 and same_values[0] == player:
+                            value += same_values.size
+                        same_values = np.array([])
+                        if i != 0:
+                            same_values = np.append(same_values, i)
+                if number_of_iteration == 6 and same_values.size != 0:
+                    if same_values.size >= 2 and same_values[0] == player:
+                        value += same_values.size
+                    break
+                number_of_iteration += 1
+
+        # policzenie punktów w lewej przekątnej
+        same_values = np.array([])
+        number_of_iteration = 0
+        for i in board.diagonal():
+            if same_values.size == 0 and i != 0:
+                same_values = np.append(same_values, i)
+            else:
+                if same_values[-1] == i:
+                    same_values = np.append(same_values, i)
+                else:
+                    if same_values.size >= 2 and same_values[0] == player:
+                        value += same_values.size
+                    same_values = np.array([])
+                    if i != 0:
+                        same_values = np.append(same_values, i)
+            if number_of_iteration == 6 and same_values.size != 0:
+                if same_values.size >= 2 and same_values[0] == player:
+                    value += same_values.size
+                break
+            number_of_iteration += 1
+
+        # policzenie punktów w prawej przekątnej
+        same_values = np.array([])
+        number_of_iteration = 0
+        for i in np.diag(np.fliplr(board)):
+            if same_values.size == 0 and i != 0:
+                same_values = np.append(same_values, i)
+            else:
+                if same_values[-1] == i:
+                    same_values = np.append(same_values, i)
+                else:
+                    if same_values.size >= 2 and same_values[0] == player:
+                        value += same_values.size
+                    same_values = np.array([])
+                    if i != 0:
+                        same_values = np.append(same_values, i)
+            if number_of_iteration == 6 and same_values.size != 0:
+                if same_values.size >= 2 and same_values[0] == player:
+                    value += same_values.size
+                break
+            number_of_iteration += 1
+
+        # policzenie wartości pustych pól graniczących z polami gracza
+        empty_cells_value = 0
+        for empty_cell in np.argwhere(board == 0):
+            current_empty_cell_value = 0
+
+            if empty_cell[0] > 0:
+                if board[empty_cell[0] - 1][empty_cell[1]] == player:
+                    current_empty_cell_value += 1
+            if empty_cell[0] < 6:
+                if board[empty_cell[0] + 1][empty_cell[1]] == player:
+                    current_empty_cell_value += 1
+            if empty_cell[1] > 0:
+                if board[empty_cell[0]][empty_cell[1] - 1] == player:
+                    current_empty_cell_value += 1
+            if empty_cell[1] < 6:
+                if board[empty_cell[0]][empty_cell[1] + 1] == player:
+                    current_empty_cell_value += 1
+
+            empty_cells_value += current_empty_cell_value
+
+        value += empty_cells_value
+
+        return value
+
+    # funkcja oceniająca stan planszy pod względem różnicy między punktami gracza a przeciwnika
+    def rate_table_state_by_our_points_and_opponent_points(self, board, player):
+        global same_values
+        players_points = np.zeros(2, dtype=int)
+
+        # policzenie punktów w kolumnach
+        for column in range(8):
+            same_values = np.array([])
+            number_of_iteration = 0
+            for i in board[:, column]:
+                if same_values.size == 0 and i != 0:
+                    same_values = np.append(same_values, i)
+                else:
+                    if same_values[-1] == i:
+                        same_values = np.append(same_values, i)
+                    else:
+                        if same_values.size >= 2:
+                            players_points[int(same_values[0])-1] += same_values.size
+                        same_values = np.array([])
+                        if i != 0:
+                            same_values = np.append(same_values, i)
+                if number_of_iteration == 6 and same_values.size != 0:
+                    if same_values.size >= 2:
+                        players_points[int(same_values[0]) - 1] += same_values.size
+                    break
+                number_of_iteration += 1
+
+        # policzenie punktów w wierszach
+        for row in range(8):
+            same_values = np.array([])
+            number_of_iteration = 0
+            for i in board[row, :]:
+                if same_values.size == 0 and i != 0:
+                    same_values = np.append(same_values, i)
+                else:
+                    if same_values[-1] == i:
+                        same_values = np.append(same_values, i)
+                    else:
+                        if same_values.size >= 2:
+                            players_points[int(same_values[0]) - 1] += same_values.size
+                        same_values = np.array([])
+                        if i != 0:
+                            same_values = np.append(same_values, i)
+                if number_of_iteration == 6 and same_values.size != 0:
+                    if same_values.size >= 2:
+                        players_points[int(same_values[0]) - 1] += same_values.size
+                    break
+                number_of_iteration += 1
+
+        # policzenie punktów w lewej przekątnej
+        same_values = np.array([])
+        number_of_iteration = 0
+        for i in board.diagonal():
+            if same_values.size == 0:
+                same_values = np.append(same_values, i)
+            else:
+                if same_values[-1] == i and i != 0:
+                    same_values = np.append(same_values, i)
+                else:
+                    if same_values.size >= 2:
+                        players_points[int(same_values[0]) - 1] += same_values.size
+                    same_values = np.array([])
+                    if i != 0:
+                        same_values = np.append(same_values, i)
+            if number_of_iteration == 6 and same_values.size != 0:
+                if same_values.size >= 2:
+                    players_points[int(same_values[0]) - 1] += same_values.size
+                break
+            number_of_iteration += 1
+
+        # policzenie punktów w prawej przekątnej
+        same_values = np.array([])
+        number_of_iteration = 0
+        for i in np.diag(np.fliplr(board)):
+            if same_values.size == 0:
+                same_values = np.append(same_values, i)
+            else:
+                if same_values[-1] == i and i != 0:
+                    same_values = np.append(same_values, i)
+                else:
+                    if same_values.size >= 2:
+                        players_points[int(same_values[0]) - 1] += same_values.size
+                    same_values = np.array([])
+                    if i != 0:
+                        same_values = np.append(same_values, i)
+            if number_of_iteration == 6 and same_values.size != 0:
+                if same_values.size >= 2:
+                    players_points[int(same_values[0]) - 1] += same_values.size
+                break
+            number_of_iteration += 1
+
+        # ustalenie oznaczeń pól przeciwnika na planaszy
+        if player == 1:
+            value = players_points[1] - players_points[2]
+        else:
+            value = players_points[2] - players_points[1]
+
+        return value
