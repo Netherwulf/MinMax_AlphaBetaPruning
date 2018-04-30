@@ -12,7 +12,7 @@ class Game(object):
         self.counted_lines = np.zeros(16, dtype=int)
         pass
 
-    def play(self, human_player_one=False, cpu_vs_cpu=False):
+    def play(self, human_player_one=False, cpu_vs_cpu=False, min_max_vs_alpha_beta=False, alpha_beta_vs_min_max=True, min_max_vs_min_max=False, alpha_beta_vs_alpha_beta=False, min_max_vs_human=True, rating_method_one=True):
         while 0 in self.board:
             # Człowiek vs AI
             if human_player_one and not cpu_vs_cpu:
@@ -37,7 +37,7 @@ class Game(object):
                 else:
                     # print("MYŚLĘ")
                     board = np.copy(self.board)
-                    computer_chosen_index = self.min_max(board, player=2, max_depth=3, rating_method_one=False)
+                    computer_chosen_index = self.min_max(board, player=2, max_depth=3, rating_method_one=rating_method_one) if min_max_vs_human else self.alpha_beta(board, player=2, max_depth=3, rating_method_one=rating_method_one)
                     self.board[computer_chosen_index[0]][computer_chosen_index[1]] = 2
                     self.check_results(computer_chosen_index[0], computer_chosen_index[1])
             # AI vs Człowiek
@@ -51,7 +51,7 @@ class Game(object):
                 else:
                     # print("MYŚLĘ")
                     board = np.copy(self.board)
-                    computer_chosen_index = self.min_max(board, player=1, max_depth=3, rating_method_one=False)
+                    computer_chosen_index = self.min_max(board, player=1, max_depth=3, rating_method_one=rating_method_one) if min_max_vs_human else self.alpha_beta(board, player=1, max_depth=3, rating_method_one=rating_method_one)
                     self.board[computer_chosen_index[0]][computer_chosen_index[1]] = 1
                     self.check_results(computer_chosen_index[0], computer_chosen_index[1])
                 if 0 not in self.board:
@@ -77,7 +77,7 @@ class Game(object):
                 else:
                     # print("MYŚLĘ")
                     board = np.copy(self.board)
-                    computer_chosen_index = self.min_max(board, player=1, max_depth=2, rating_method_one=True)
+                    computer_chosen_index = self.min_max(board, player=1, max_depth=2, rating_method_one=True) if min_max_vs_alpha_beta or min_max_vs_min_max else self.alpha_beta(board, player=1, max_depth=3, rating_method_one=True)
                     self.board[computer_chosen_index[0]][computer_chosen_index[1]] = 1
                     self.check_results(computer_chosen_index[0], computer_chosen_index[1])
                 if 0 not in self.board:
@@ -92,7 +92,7 @@ class Game(object):
                 else:
                     # print("MYŚLĘ")
                     board = np.copy(self.board)
-                    computer_chosen_index = self.min_max(board, player=2, max_depth=2, rating_method_one=False)
+                    computer_chosen_index = self.min_max(board, player=2, max_depth=2, rating_method_one=False) if alpha_beta_vs_min_max or min_max_vs_min_max else self.alpha_beta(board, player=2, max_depth=3, rating_method_one=False)
                     self.board[computer_chosen_index[0]][computer_chosen_index[1]] = 2
                     self.check_results(computer_chosen_index[0], computer_chosen_index[1])
         # prezentacja wyników końcowych
@@ -101,12 +101,12 @@ class Game(object):
         print("Punkty gracza 1: " + str(self.players_points[0]))
         print("Punkty gracza 2: " + str(self.players_points[1]))
         print("Wygrał gracz 1." if self.players_points[0] > self.players_points[1] else ("Wygrał gracz 2." if self.players_points[0] < self.players_points[1] else "Gra zakończyła się remisem!"))
-        print("Punkty w wierszach: " + "\n" + str(
-            np.array([self.points_per_row_column_diagonal[i] for i in range(0, 7)])))
-        print("Punkty w kolumnach: " + "\n" + str(
-            np.array([self.points_per_row_column_diagonal[i] for i in range(7, 14)])))
-        print("Punkty w przekątnych: " + "\n" + str(
-            np.array([self.points_per_row_column_diagonal[i] for i in range(14, 16)])))
+        # print("Punkty w wierszach: " + "\n" + str(
+        #     np.array([self.points_per_row_column_diagonal[i] for i in range(0, 7)])))
+        # print("Punkty w kolumnach: " + "\n" + str(
+        #     np.array([self.points_per_row_column_diagonal[i] for i in range(7, 14)])))
+        # print("Punkty w przekątnych: " + "\n" + str(
+        #     np.array([self.points_per_row_column_diagonal[i] for i in range(14, 16)])))
 
     # funkcja licząca punkty
     def check_results(self, row, column):
@@ -205,6 +205,7 @@ class Game(object):
                     break
                 number_of_iteration += 1
 
+    ###### MIN - MAX ######
     def min_max(self, board, player, max_depth, rating_method_one=True):
         moves = np.argwhere(board == 0)
         best_move = moves[0]
@@ -222,6 +223,7 @@ class Game(object):
                 best_score = score
         return best_move
 
+    # min - max minimizer
     def min_play(self, board, cur_player, player, max_depth, current_depth, rating_method_one):
         if 0 not in board or current_depth == max_depth:
             return self.rate_table_state_by_our_points_and_empty_fields(board,
@@ -241,6 +243,7 @@ class Game(object):
                 best_score = score
         return best_score
 
+    # min - max maximizer
     def max_play(self, board, cur_player, player, max_depth, current_depth, rating_method_one):
         if 0 not in board or current_depth == max_depth:
             return self.rate_table_state_by_our_points_and_empty_fields(board,
@@ -260,12 +263,76 @@ class Game(object):
                 best_score = score
         return best_score
 
+    ###### ALFA - BETA CIĘCIE ######
+    def alpha_beta(self, board, player, max_depth, rating_method_one=True):
+        moves = np.argwhere(board == 0)
+        best_move = moves[0]
+        best_score = -np.inf
+        beta = np.inf
+        if player == 1:
+            next_player = 2
+        else:
+            next_player = 1
+        for move in moves:
+            clone = self.make_move_on_board(board, move, player)
+            score = self.alpha_beta_minimizer(clone, best_score, beta, next_player, player, max_depth, 0, rating_method_one)
+            if score > best_score:
+                # print("Nowy najlepszy wynik: " + str(score) + "Dla gracza: " + str(player))
+                best_move = move
+                best_score = score
+        return best_move
+
+    # alfa - beta minimizer
+    def alpha_beta_minimizer(self, board, alpha, beta, cur_player, player, max_depth, current_depth, rating_method_one):
+        if 0 not in board or current_depth == max_depth:
+            return self.rate_table_state_by_our_points_and_empty_fields(board,
+                                                                        player) if rating_method_one else self.rate_table_state_by_our_points_and_opponent_points(
+                board, player)
+        moves = np.argwhere(board == 0)
+        best_score = np.inf
+        if cur_player == 1:
+            next_player = 2
+        else:
+            next_player = 1
+        for move in moves:
+            clone = self.make_move_on_board(board, move, cur_player)
+            score = self.alpha_beta_maximizer(clone, alpha, beta, next_player, player, max_depth, current_depth + 1, rating_method_one)
+            if score < best_score:
+                best_move = move
+                best_score = score
+            if best_score <= alpha:
+                return best_score
+            beta = min(beta, best_score)
+        return best_score
+
+    # alfa - beta maximizer
+    def alpha_beta_maximizer(self, board, alpha, beta, cur_player, player, max_depth, current_depth, rating_method_one):
+        if 0 not in board or current_depth == max_depth:
+            return self.rate_table_state_by_our_points_and_empty_fields(board,
+                                                                        player) if rating_method_one else self.rate_table_state_by_our_points_and_opponent_points(
+                board, player)
+        moves = np.argwhere(board == 0)
+        best_score = -np.inf
+        if cur_player == 1:
+            next_player = 2
+        else:
+            next_player = 1
+        for move in moves:
+            clone = self.make_move_on_board(board, move, cur_player)
+            score = self.alpha_beta_minimizer(clone, alpha, beta, next_player, player, max_depth, current_depth + 1, rating_method_one)
+            if score > best_score:
+                best_move = move
+                best_score = score
+            if best_score >= beta:
+                return best_score
+            alpha = max(alpha, best_score)
+        return best_score
     '''
     2 Heurystyki do oceny stanu planszy:
         1. suma naszych punktów + liczba pustych pól przy naszych polach (każde puste pole liczy się tyle razy ile naszych pól z nim graniczy)
         2. suma naszych punktów - punkty przeciwnika
     3 Heurystyki do wyboru kolejnego węzła:
-        1. Po kolei.
+        1. Po kolei
         2. Random
     '''
 
@@ -428,16 +495,16 @@ class Game(object):
         # print("Wartość: " + str(value))
         return value
 
-    # funkcje użytkowe (utility functions)
+    # funkcje pomocnicze (utility functions)
     def make_move_on_board(self, board, move, player):
         new_board = np.copy(board)
         new_board[move[0]][move[1]] = player
         return new_board
 
     def print_board(self):
-        print("##############")
-        for row in self.board:
-            print(' '.join(colored(element, 'cyan') if element == 1
+        print("---------------")
+        print("  0 1 2 3 4 5 6")
+        for index, row in enumerate(self.board):
+            print(str(index) + ' ' + ' '.join(colored(element, 'cyan') if element == 1
                            else colored(element, 'red') if element == 2 else colored(element, 'green')
                            for element in row))
-        print("##############")
