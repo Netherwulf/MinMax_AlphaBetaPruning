@@ -1,18 +1,38 @@
 import numpy as np
 import random
+import time
 from termcolor import colored
 
 
 class Game(object):
+
+    '''
+    2 Heurystyki do oceny stanu planszy:
+        1. suma naszych punktów + liczba pustych pól przy naszych polach (każde puste pole liczy się tyle razy ile naszych pól z nim graniczy)
+        2. suma naszych punktów - punkty przeciwnika
+    3 Heurystyki do wyboru kolejnego węzła:
+        1. Po kolei
+        2. Random
+        3. <DODAC>
+    '''
 
     def __init__(self):
         self.board = np.zeros((7, 7), dtype=int)
         self.points_per_row_column_diagonal = np.zeros((16, 2), dtype=int)
         self.players_points = np.zeros(2, dtype=int)
         self.counted_lines = np.zeros(16, dtype=int)
+        self.number_of_nodes_searched_player_1 = 0
+        self.number_of_nodes_searched_player_2 = 0
+        self.number_of_alpha_cuts_player_1 = 0
+        self.number_of_alpha_cuts_player_2 = 0
+        self.number_of_beta_cuts_player_1 = 0
+        self.number_of_beta_cuts_player_2 = 0
+        self.time_of_decision_player_1 = np.array([])
+        self.time_of_decision_player_2 = np.array([])
         pass
 
-    def play(self, human_player_one=False, cpu_vs_cpu=False, min_max_vs_alpha_beta=False, alpha_beta_vs_min_max=True, min_max_vs_min_max=False, alpha_beta_vs_alpha_beta=False, min_max_vs_human=True, rating_method_one=True):
+    def play(self, human_player_one=False, cpu_vs_cpu=False, min_max_vs_alpha_beta=False, alpha_beta_vs_min_max=False,
+             min_max_vs_min_max=False, alpha_beta_vs_alpha_beta=False, min_max_vs_human=True, rating_method_one=True, random_node_choice_player_1=False, random_node_choice_player_2=False):
         while 0 in self.board:
             # Człowiek vs AI
             if human_player_one and not cpu_vs_cpu:
@@ -37,7 +57,11 @@ class Game(object):
                 else:
                     # print("MYŚLĘ")
                     board = np.copy(self.board)
-                    computer_chosen_index = self.min_max(board, player=2, max_depth=3, rating_method_one=rating_method_one) if min_max_vs_human else self.alpha_beta(board, player=2, max_depth=3, rating_method_one=rating_method_one)
+                    start_time = time.time()
+                    computer_chosen_index = self.min_max(board, player=2, max_depth=3,
+                                                         rating_method_one=rating_method_one, random_node_choice=random_node_choice_player_2) if min_max_vs_human else self.alpha_beta(
+                        board, player=2, max_depth=3, rating_method_one=rating_method_one, random_node_choice=random_node_choice_player_2)
+                    self.time_of_decision_player_2 = np.append(self.time_of_decision_player_2, np.array([time.time() - start_time]), axis=0)
                     self.board[computer_chosen_index[0]][computer_chosen_index[1]] = 2
                     self.check_results(computer_chosen_index[0], computer_chosen_index[1])
             # AI vs Człowiek
@@ -51,7 +75,12 @@ class Game(object):
                 else:
                     # print("MYŚLĘ")
                     board = np.copy(self.board)
-                    computer_chosen_index = self.min_max(board, player=1, max_depth=3, rating_method_one=rating_method_one) if min_max_vs_human else self.alpha_beta(board, player=1, max_depth=3, rating_method_one=rating_method_one)
+                    start_time = time.time()
+                    computer_chosen_index = self.min_max(board, player=1, max_depth=3,
+                                                         rating_method_one=rating_method_one, random_node_choice=random_node_choice_player_1) if min_max_vs_human else self.alpha_beta(
+                        board, player=1, max_depth=3, rating_method_one=rating_method_one, random_node_choice=random_node_choice_player_1)
+                    self.time_of_decision_player_1 = np.append(self.time_of_decision_player_1, np.array([time.time() - start_time]),
+                                                               axis=0)
                     self.board[computer_chosen_index[0]][computer_chosen_index[1]] = 1
                     self.check_results(computer_chosen_index[0], computer_chosen_index[1])
                 if 0 not in self.board:
@@ -77,7 +106,12 @@ class Game(object):
                 else:
                     # print("MYŚLĘ")
                     board = np.copy(self.board)
-                    computer_chosen_index = self.min_max(board, player=1, max_depth=2, rating_method_one=True) if min_max_vs_alpha_beta or min_max_vs_min_max else self.alpha_beta(board, player=1, max_depth=3, rating_method_one=True)
+                    start_time = time.time()
+                    computer_chosen_index = self.min_max(board, player=1, max_depth=2,
+                                                         rating_method_one=True, random_node_choice=random_node_choice_player_1) if min_max_vs_alpha_beta or min_max_vs_min_max else self.alpha_beta(
+                        board, player=1, max_depth=3, rating_method_one=True, random_node_choice=random_node_choice_player_1)
+                    self.time_of_decision_player_1 = np.append(self.time_of_decision_player_1, np.array([time.time() - start_time]),
+                                                               axis=0)
                     self.board[computer_chosen_index[0]][computer_chosen_index[1]] = 1
                     self.check_results(computer_chosen_index[0], computer_chosen_index[1])
                 if 0 not in self.board:
@@ -92,7 +126,12 @@ class Game(object):
                 else:
                     # print("MYŚLĘ")
                     board = np.copy(self.board)
-                    computer_chosen_index = self.min_max(board, player=2, max_depth=2, rating_method_one=False) if alpha_beta_vs_min_max or min_max_vs_min_max else self.alpha_beta(board, player=2, max_depth=3, rating_method_one=False)
+                    start_time = time.time()
+                    computer_chosen_index = self.min_max(board, player=2, max_depth=2,
+                                                         rating_method_one=False, random_node_choice=random_node_choice_player_2) if alpha_beta_vs_min_max or min_max_vs_min_max else self.alpha_beta(
+                        board, player=2, max_depth=3, rating_method_one=False, random_node_choice=random_node_choice_player_2)
+                    self.time_of_decision_player_2 = np.append(self.time_of_decision_player_2, np.array([time.time() - start_time]),
+                                                               axis=0)
                     self.board[computer_chosen_index[0]][computer_chosen_index[1]] = 2
                     self.check_results(computer_chosen_index[0], computer_chosen_index[1])
         # prezentacja wyników końcowych
@@ -100,13 +139,65 @@ class Game(object):
         print("Gra dobiegła końca!")
         print("Punkty gracza 1: " + str(self.players_points[0]))
         print("Punkty gracza 2: " + str(self.players_points[1]))
-        print("Wygrał gracz 1." if self.players_points[0] > self.players_points[1] else ("Wygrał gracz 2." if self.players_points[0] < self.players_points[1] else "Gra zakończyła się remisem!"))
+        print("Wygrał gracz 1." if self.players_points[0] > self.players_points[1] else (
+            "Wygrał gracz 2." if self.players_points[0] < self.players_points[1] else "Gra zakończyła się remisem!"))
         # print("Punkty w wierszach: " + "\n" + str(
         #     np.array([self.points_per_row_column_diagonal[i] for i in range(0, 7)])))
         # print("Punkty w kolumnach: " + "\n" + str(
         #     np.array([self.points_per_row_column_diagonal[i] for i in range(7, 14)])))
         # print("Punkty w przekątnych: " + "\n" + str(
         #     np.array([self.points_per_row_column_diagonal[i] for i in range(14, 16)])))
+
+        if human_player_one and not cpu_vs_cpu:
+            print("Liczba węzłów odwiedzona przez algorytm {algorithm}".format(algorithm="min-max: " if min_max_vs_human else "alfa-beta cięć: ") + str(self.number_of_nodes_searched_player_1))
+            print("Średni czas podejmowania decyzji przez algorytm {algorithm}".format(algorithm="min-max: " if min_max_vs_human else "alfa-beta cięć: ") + str(np.average(self.time_of_decision_player_1)))
+            if not min_max_vs_human:
+                print("Łaczna liczba alfa cięć wykonana przez algorytm: " + str(self.number_of_alpha_cuts_player_1))
+                print("Łaczna liczba beta cięć wykonana przez algorytm: " + str(self.number_of_beta_cuts_player_1))
+                print("Średnia liczba alfa cięć wykonana przez algorytm: " + str(self.number_of_alpha_cuts_player_1/25.0))
+                print("Średnia liczba beta cięć wykonana przez algorytm: " + str(self.number_of_beta_cuts_player_1/25.0))
+
+        if not human_player_one and not cpu_vs_cpu:
+            print("Liczba węzłów odwiedzona przez algorytm {algorithm}".format(algorithm="min-max: " if min_max_vs_human else "alfa-beta cięć: ") + str(self.number_of_nodes_searched_player_2))
+            print("Średni czas podejmowania decyzji przez algorytm {algorithm}".format(algorithm="min-max: " if min_max_vs_human else "alfa-beta cięć: ") + str(np.average(self.time_of_decision_player_2)))
+            if not min_max_vs_human:
+                print("Łaczna liczba alfa cięć wykonana przez algorytm: " + str(self.number_of_alpha_cuts_player_2))
+                print("Łaczna liczba beta cięć wykonana przez algorytm: " + str(self.number_of_beta_cuts_player_2))
+                print("Średnia liczba alfa cięć wykonana przez algorytm: " + str(self.number_of_alpha_cuts_player_2/24.0))
+                print("Średnia liczba beta cięć wykonana przez algorytm: " + str(self.number_of_beta_cuts_player_2/24.0))
+
+        if cpu_vs_cpu:
+            print("Liczba węzłów odwiedzona przez Gracza 1 (algorytm {algorithm}".format(
+                algorithm="min-max): " if min_max_vs_alpha_beta or min_max_vs_min_max else "alfa-beta cięć): ") + str(
+                self.number_of_nodes_searched_player_1))
+            print("Liczba węzłów odwiedzona przez Gracza 2 (algorytm {algorithm}".format(
+                algorithm="min-max): " if alpha_beta_vs_min_max or min_max_vs_min_max else "alfa-beta cięć): ") + str(
+                self.number_of_nodes_searched_player_2))
+            print("Średni czas podejmowania decyzji przez Gracza 1 (algorytm {algorithm}".format(
+                algorithm="min-max): " if min_max_vs_alpha_beta or min_max_vs_min_max else "alfa-beta cięć): ") + str(
+                np.average(self.time_of_decision_player_1)))
+            print("Średni czas podejmowania decyzji przez Gracza 2 (algorytm {algorithm}".format(
+                algorithm="min-max): " if alpha_beta_vs_min_max or min_max_vs_min_max else "alfa-beta cięć): ") + str(
+                np.average(self.time_of_decision_player_2)))
+            if not min_max_vs_alpha_beta and not min_max_vs_min_max:
+                print("Łaczna liczba alfa cięć wykonana przez Gracza 1 (algorytm alfa-beta cięć): " + str(self.number_of_alpha_cuts_player_1))
+            if not alpha_beta_vs_min_max and not min_max_vs_min_max:
+                print("Łaczna liczba alfa cięć wykonana przez Gracza 2 (algorytm alfa-beta cięć): " + str(
+                    self.number_of_alpha_cuts_player_2))
+            if not min_max_vs_alpha_beta and not min_max_vs_min_max:
+                print("Łaczna liczba beta cięć wykonana przez Gracza 1 (algorytm alfa-beta cięć): " + str(self.number_of_beta_cuts_player_1))
+            if not alpha_beta_vs_min_max and not min_max_vs_min_max:
+                print("Łaczna liczba beta cięć wykonana przez Gracza 2 (algorytm alfa-beta cięć): " + str(
+                    self.number_of_beta_cuts_player_2))
+            if not min_max_vs_alpha_beta and not min_max_vs_min_max:
+                print("Średnia liczba alfa cięć wykonana przez Gracza 1 (algorytm alfa-beta cięć): " + str(self.number_of_alpha_cuts_player_1 / 25.0))
+            if not alpha_beta_vs_min_max and not min_max_vs_min_max:
+                print("Średnia liczba alfa cięć wykonana przez Gracza 2 (algorytm alfa-beta cięć): " + str(
+                    self.number_of_alpha_cuts_player_2 / 25.0))
+            if not min_max_vs_alpha_beta and not min_max_vs_min_max:
+                print("Średnia liczba beta cięć wykonana przez Gracza 1 (algorytm alfa-beta cięć): " + str(self.number_of_beta_cuts_player_1 / 25.0))
+            if not alpha_beta_vs_min_max and not min_max_vs_min_max:
+                print("Średnia liczba beta cięć wykonana przez Gracza 2 (algorytm alfa-beta cięć): " + str(self.number_of_beta_cuts_player_2 / 25.0))
 
     # funkcja licząca punkty
     def check_results(self, row, column):
@@ -206,7 +297,7 @@ class Game(object):
                 number_of_iteration += 1
 
     ###### MIN - MAX ######
-    def min_max(self, board, player, max_depth, rating_method_one=True):
+    def min_max(self, board, player, max_depth, rating_method_one=True, random_node_choice=False):
         moves = np.argwhere(board == 0)
         best_move = moves[0]
         best_score = -np.inf
@@ -214,9 +305,9 @@ class Game(object):
             next_player = 2
         else:
             next_player = 1
-        for move in moves:
+        for move in moves if not random_node_choice else moves:
             clone = self.make_move_on_board(board, move, player)
-            score = self.min_play(clone, next_player, player, max_depth, 0, rating_method_one)
+            score = self.min_play(clone, next_player, player, max_depth, 0, rating_method_one, random_node_choice)
             if score > best_score:
                 # print("Nowy najlepszy wynik: " + str(score) + "Dla gracza: " + str(player))
                 best_move = move
@@ -224,7 +315,11 @@ class Game(object):
         return best_move
 
     # min - max minimizer
-    def min_play(self, board, cur_player, player, max_depth, current_depth, rating_method_one):
+    def min_play(self, board, cur_player, player, max_depth, current_depth, rating_method_one, random_node_choice):
+        if player == 1:
+            self.number_of_nodes_searched_player_1 += 1
+        else:
+            self.number_of_nodes_searched_player_2 += 1
         if 0 not in board or current_depth == max_depth:
             return self.rate_table_state_by_our_points_and_empty_fields(board,
                                                                         player) if rating_method_one else self.rate_table_state_by_our_points_and_opponent_points(
@@ -235,16 +330,20 @@ class Game(object):
             next_player = 2
         else:
             next_player = 1
-        for move in moves:
+        for move in moves if not random_node_choice else moves:
             clone = self.make_move_on_board(board, move, cur_player)
-            score = self.max_play(clone, next_player, player, max_depth, current_depth + 1, rating_method_one)
+            score = self.max_play(clone, next_player, player, max_depth, current_depth + 1, rating_method_one, random_node_choice)
             if score < best_score:
                 best_move = move
                 best_score = score
         return best_score
 
     # min - max maximizer
-    def max_play(self, board, cur_player, player, max_depth, current_depth, rating_method_one):
+    def max_play(self, board, cur_player, player, max_depth, current_depth, rating_method_one, random_node_choice):
+        if player == 1:
+            self.number_of_nodes_searched_player_1 += 1
+        else:
+            self.number_of_nodes_searched_player_2 += 1
         if 0 not in board or current_depth == max_depth:
             return self.rate_table_state_by_our_points_and_empty_fields(board,
                                                                         player) if rating_method_one else self.rate_table_state_by_our_points_and_opponent_points(
@@ -255,16 +354,16 @@ class Game(object):
             next_player = 2
         else:
             next_player = 1
-        for move in moves:
+        for move in moves if not random_node_choice else moves:
             clone = self.make_move_on_board(board, move, cur_player)
-            score = self.min_play(clone, next_player, player, max_depth, current_depth + 1, rating_method_one)
+            score = self.min_play(clone, next_player, player, max_depth, current_depth + 1, rating_method_one, random_node_choice)
             if score > best_score:
                 best_move = move
                 best_score = score
         return best_score
 
     ###### ALFA - BETA CIĘCIE ######
-    def alpha_beta(self, board, player, max_depth, rating_method_one=True):
+    def alpha_beta(self, board, player, max_depth, rating_method_one=True, random_node_choice=False):
         moves = np.argwhere(board == 0)
         best_move = moves[0]
         best_score = -np.inf
@@ -273,9 +372,10 @@ class Game(object):
             next_player = 2
         else:
             next_player = 1
-        for move in moves:
+        for move in moves if not random_node_choice else moves:
             clone = self.make_move_on_board(board, move, player)
-            score = self.alpha_beta_minimizer(clone, best_score, beta, next_player, player, max_depth, 0, rating_method_one)
+            score = self.alpha_beta_minimizer(clone, best_score, beta, next_player, player, max_depth, 0,
+                                              rating_method_one, random_node_choice)
             if score > best_score:
                 # print("Nowy najlepszy wynik: " + str(score) + "Dla gracza: " + str(player))
                 best_move = move
@@ -283,7 +383,11 @@ class Game(object):
         return best_move
 
     # alfa - beta minimizer
-    def alpha_beta_minimizer(self, board, alpha, beta, cur_player, player, max_depth, current_depth, rating_method_one):
+    def alpha_beta_minimizer(self, board, alpha, beta, cur_player, player, max_depth, current_depth, rating_method_one, random_node_choice):
+        if player == 1:
+            self.number_of_nodes_searched_player_1 += 1
+        else:
+            self.number_of_nodes_searched_player_2 += 1
         if 0 not in board or current_depth == max_depth:
             return self.rate_table_state_by_our_points_and_empty_fields(board,
                                                                         player) if rating_method_one else self.rate_table_state_by_our_points_and_opponent_points(
@@ -294,19 +398,28 @@ class Game(object):
             next_player = 2
         else:
             next_player = 1
-        for move in moves:
+        for move in moves if not random_node_choice else moves:
             clone = self.make_move_on_board(board, move, cur_player)
-            score = self.alpha_beta_maximizer(clone, alpha, beta, next_player, player, max_depth, current_depth + 1, rating_method_one)
+            score = self.alpha_beta_maximizer(clone, alpha, beta, next_player, player, max_depth, current_depth + 1,
+                                              rating_method_one, random_node_choice)
             if score < best_score:
                 best_move = move
                 best_score = score
             if best_score <= alpha:
+                if player == 1:
+                    self.number_of_alpha_cuts_player_1 += 1
+                else:
+                    self.number_of_alpha_cuts_player_2 += 1
                 return best_score
             beta = min(beta, best_score)
         return best_score
 
     # alfa - beta maximizer
-    def alpha_beta_maximizer(self, board, alpha, beta, cur_player, player, max_depth, current_depth, rating_method_one):
+    def alpha_beta_maximizer(self, board, alpha, beta, cur_player, player, max_depth, current_depth, rating_method_one, random_node_choice):
+        if player == 1:
+            self.number_of_nodes_searched_player_1 += 1
+        else:
+            self.number_of_nodes_searched_player_2 += 1
         if 0 not in board or current_depth == max_depth:
             return self.rate_table_state_by_our_points_and_empty_fields(board,
                                                                         player) if rating_method_one else self.rate_table_state_by_our_points_and_opponent_points(
@@ -317,24 +430,21 @@ class Game(object):
             next_player = 2
         else:
             next_player = 1
-        for move in moves:
+        for move in moves if not random_node_choice else moves:
             clone = self.make_move_on_board(board, move, cur_player)
-            score = self.alpha_beta_minimizer(clone, alpha, beta, next_player, player, max_depth, current_depth + 1, rating_method_one)
+            score = self.alpha_beta_minimizer(clone, alpha, beta, next_player, player, max_depth, current_depth + 1,
+                                              rating_method_one, random_node_choice)
             if score > best_score:
                 best_move = move
                 best_score = score
             if best_score >= beta:
+                if player == 1:
+                    self.number_of_beta_cuts_player_1 += 1
+                else:
+                    self.number_of_beta_cuts_player_2 += 1
                 return best_score
             alpha = max(alpha, best_score)
         return best_score
-    '''
-    2 Heurystyki do oceny stanu planszy:
-        1. suma naszych punktów + liczba pustych pól przy naszych polach (każde puste pole liczy się tyle razy ile naszych pól z nim graniczy)
-        2. suma naszych punktów - punkty przeciwnika
-    3 Heurystyki do wyboru kolejnego węzła:
-        1. Po kolei
-        2. Random
-    '''
 
     # funkcja oceniająca stan planszy pod względem liczby pól, które należą do danego gracza i pól pustych, które graniczą z wybranym polem
     def rate_table_state_by_our_points_and_empty_fields(self, board, player):
@@ -364,10 +474,10 @@ class Game(object):
         for index, value in enumerate(board.diagonal()):
             if index > 0:
                 if board[index - 1][index - 1] == player:
-                        my_cells_value += 1
+                    my_cells_value += 1
             else:
                 if board[index + 1][index + 1] == player:
-                        my_cells_value += 1
+                    my_cells_value += 1
 
         value += my_cells_value
 
@@ -492,7 +602,6 @@ class Game(object):
 
         value += my_cells_value
         value -= his_cells_value
-        # print("Wartość: " + str(value))
         return value
 
     # funkcje pomocnicze (utility functions)
@@ -506,5 +615,6 @@ class Game(object):
         print("  0 1 2 3 4 5 6")
         for index, row in enumerate(self.board):
             print(str(index) + ' ' + ' '.join(colored(element, 'cyan') if element == 1
-                           else colored(element, 'red') if element == 2 else colored(element, 'green')
-                           for element in row))
+                                              else colored(element, 'red') if element == 2 else colored(element,
+                                                                                                        'green')
+                                              for element in row))
