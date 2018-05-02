@@ -8,12 +8,12 @@ class Game(object):
 
     '''
     2 Heurystyki do oceny stanu planszy:
-        1. suma naszych punktów + liczba pustych pól przy naszych polach (każde puste pole liczy się tyle razy ile naszych pól z nim graniczy)
-        2. suma naszych punktów - punkty przeciwnika
+        1. Suma naszych punktów + liczba pustych pól przy naszych polach (każde puste pole liczy się tyle razy ile naszych pól z nim graniczy)
+        2. Suma naszych punktów - punkty przeciwnika
     3 Heurystyki do wyboru kolejnego węzła:
         1. Po kolei
         2. Random
-        3. <DODAC>
+        3. <DODAC> Funkcja oceniająca sprawdzająca węzły w kolejności liczby graniczących PUSTYCH pól
     '''
 
     def __init__(self):
@@ -299,13 +299,15 @@ class Game(object):
     ###### MIN - MAX ######
     def min_max(self, board, player, max_depth, rating_method_one=True, random_node_choice=False):
         moves = np.argwhere(board == 0)
+        if random_node_choice:
+            np.random.shuffle(moves)
         best_move = moves[0]
         best_score = -np.inf
         if player == 1:
             next_player = 2
         else:
             next_player = 1
-        for move in moves if not random_node_choice else moves:
+        for move in moves:
             clone = self.make_move_on_board(board, move, player)
             score = self.min_play(clone, next_player, player, max_depth, 0, rating_method_one, random_node_choice)
             if score > best_score:
@@ -325,12 +327,14 @@ class Game(object):
                                                                         player) if rating_method_one else self.rate_table_state_by_our_points_and_opponent_points(
                 board, player)
         moves = np.argwhere(board == 0)
+        if random_node_choice:
+            np.random.shuffle(moves)
         best_score = np.inf
         if cur_player == 1:
             next_player = 2
         else:
             next_player = 1
-        for move in moves if not random_node_choice else moves:
+        for move in moves:
             clone = self.make_move_on_board(board, move, cur_player)
             score = self.max_play(clone, next_player, player, max_depth, current_depth + 1, rating_method_one, random_node_choice)
             if score < best_score:
@@ -349,12 +353,14 @@ class Game(object):
                                                                         player) if rating_method_one else self.rate_table_state_by_our_points_and_opponent_points(
                 board, player)
         moves = np.argwhere(board == 0)
+        if random_node_choice:
+            np.random.shuffle(moves)
         best_score = -np.inf
         if cur_player == 1:
             next_player = 2
         else:
             next_player = 1
-        for move in moves if not random_node_choice else moves:
+        for move in moves:
             clone = self.make_move_on_board(board, move, cur_player)
             score = self.min_play(clone, next_player, player, max_depth, current_depth + 1, rating_method_one, random_node_choice)
             if score > best_score:
@@ -365,6 +371,8 @@ class Game(object):
     ###### ALFA - BETA CIĘCIE ######
     def alpha_beta(self, board, player, max_depth, rating_method_one=True, random_node_choice=False):
         moves = np.argwhere(board == 0)
+        if random_node_choice:
+            np.random.shuffle(moves)
         best_move = moves[0]
         best_score = -np.inf
         beta = np.inf
@@ -372,7 +380,7 @@ class Game(object):
             next_player = 2
         else:
             next_player = 1
-        for move in moves if not random_node_choice else moves:
+        for move in moves:
             clone = self.make_move_on_board(board, move, player)
             score = self.alpha_beta_minimizer(clone, best_score, beta, next_player, player, max_depth, 0,
                                               rating_method_one, random_node_choice)
@@ -393,12 +401,14 @@ class Game(object):
                                                                         player) if rating_method_one else self.rate_table_state_by_our_points_and_opponent_points(
                 board, player)
         moves = np.argwhere(board == 0)
+        if random_node_choice:
+            np.random.shuffle(moves)
         best_score = np.inf
         if cur_player == 1:
             next_player = 2
         else:
             next_player = 1
-        for move in moves if not random_node_choice else moves:
+        for move in moves:
             clone = self.make_move_on_board(board, move, cur_player)
             score = self.alpha_beta_maximizer(clone, alpha, beta, next_player, player, max_depth, current_depth + 1,
                                               rating_method_one, random_node_choice)
@@ -425,12 +435,14 @@ class Game(object):
                                                                         player) if rating_method_one else self.rate_table_state_by_our_points_and_opponent_points(
                 board, player)
         moves = np.argwhere(board == 0)
+        if random_node_choice:
+            np.random.shuffle(moves)
         best_score = -np.inf
         if cur_player == 1:
             next_player = 2
         else:
             next_player = 1
-        for move in moves if not random_node_choice else moves:
+        for move in moves:
             clone = self.make_move_on_board(board, move, cur_player)
             score = self.alpha_beta_minimizer(clone, alpha, beta, next_player, player, max_depth, current_depth + 1,
                                               rating_method_one, random_node_choice)
