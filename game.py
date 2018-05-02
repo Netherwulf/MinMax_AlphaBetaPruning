@@ -13,7 +13,7 @@ class Game(object):
     3 Heurystyki do wyboru kolejnego węzła:
         1. Po kolei
         2. Random
-        3. <DODAC> Funkcja oceniająca sprawdzająca węzły w kolejności liczby graniczących PUSTYCH pól
+        3. Funkcja oceniająca sprawdzająca węzły w kolejności liczby graniczących PUSTYCH pól -> szacowanie liczby dozwolonych ruchów (im więcej dozwolonych tym większa szansa na znalezienie najlepszego)
     '''
 
     def __init__(self):
@@ -32,7 +32,7 @@ class Game(object):
         pass
 
     def play(self, human_player_one=False, cpu_vs_cpu=False, min_max_vs_alpha_beta=False, alpha_beta_vs_min_max=False,
-             min_max_vs_min_max=False, alpha_beta_vs_alpha_beta=False, min_max_vs_human=True, rating_method_one=True, random_node_choice_player_1=False, random_node_choice_player_2=False):
+             min_max_vs_min_max=False, alpha_beta_vs_alpha_beta=False, min_max_vs_human=True, rating_method_one=True, random_node_choice_player_1=False, random_node_choice_player_2=False, empty_adjacent_cells_node_choice_player_1=False, empty_adjacent_cells_node_choice_player_2=False):
         while 0 in self.board:
             # Człowiek vs AI
             if human_player_one and not cpu_vs_cpu:
@@ -59,8 +59,8 @@ class Game(object):
                     board = np.copy(self.board)
                     start_time = time.time()
                     computer_chosen_index = self.min_max(board, player=2, max_depth=3,
-                                                         rating_method_one=rating_method_one, random_node_choice=random_node_choice_player_2) if min_max_vs_human else self.alpha_beta(
-                        board, player=2, max_depth=3, rating_method_one=rating_method_one, random_node_choice=random_node_choice_player_2)
+                                                         rating_method_one=rating_method_one, random_node_choice=random_node_choice_player_2, empty_adjacent_cells_node_choice=empty_adjacent_cells_node_choice_player_2) if min_max_vs_human else self.alpha_beta(
+                        board, player=2, max_depth=3, rating_method_one=rating_method_one, random_node_choice=random_node_choice_player_2, empty_adjacent_cells_node_choice=empty_adjacent_cells_node_choice_player_2)
                     self.time_of_decision_player_2 = np.append(self.time_of_decision_player_2, np.array([time.time() - start_time]), axis=0)
                     self.board[computer_chosen_index[0]][computer_chosen_index[1]] = 2
                     self.check_results(computer_chosen_index[0], computer_chosen_index[1])
@@ -77,8 +77,8 @@ class Game(object):
                     board = np.copy(self.board)
                     start_time = time.time()
                     computer_chosen_index = self.min_max(board, player=1, max_depth=3,
-                                                         rating_method_one=rating_method_one, random_node_choice=random_node_choice_player_1) if min_max_vs_human else self.alpha_beta(
-                        board, player=1, max_depth=3, rating_method_one=rating_method_one, random_node_choice=random_node_choice_player_1)
+                                                         rating_method_one=rating_method_one, random_node_choice=random_node_choice_player_1, empty_adjacent_cells_node_choice=empty_adjacent_cells_node_choice_player_1) if min_max_vs_human else self.alpha_beta(
+                        board, player=1, max_depth=3, rating_method_one=rating_method_one, random_node_choice=random_node_choice_player_1, empty_adjacent_cells_node_choice=empty_adjacent_cells_node_choice_player_1)
                     self.time_of_decision_player_1 = np.append(self.time_of_decision_player_1, np.array([time.time() - start_time]),
                                                                axis=0)
                     self.board[computer_chosen_index[0]][computer_chosen_index[1]] = 1
@@ -104,12 +104,11 @@ class Game(object):
                     self.board[free_fields[0][computer_chosen_index]][free_fields[1][computer_chosen_index]] = 1
                     self.check_results(free_fields[0][computer_chosen_index], free_fields[1][computer_chosen_index])
                 else:
-                    # print("MYŚLĘ")
                     board = np.copy(self.board)
                     start_time = time.time()
                     computer_chosen_index = self.min_max(board, player=1, max_depth=2,
-                                                         rating_method_one=True, random_node_choice=random_node_choice_player_1) if min_max_vs_alpha_beta or min_max_vs_min_max else self.alpha_beta(
-                        board, player=1, max_depth=3, rating_method_one=True, random_node_choice=random_node_choice_player_1)
+                                                         rating_method_one=True, random_node_choice=random_node_choice_player_1, empty_adjacent_cells_node_choice=empty_adjacent_cells_node_choice_player_1) if min_max_vs_alpha_beta or min_max_vs_min_max else self.alpha_beta(
+                        board, player=1, max_depth=3, rating_method_one=True, random_node_choice=random_node_choice_player_1, empty_adjacent_cells_node_choice=empty_adjacent_cells_node_choice_player_1)
                     self.time_of_decision_player_1 = np.append(self.time_of_decision_player_1, np.array([time.time() - start_time]),
                                                                axis=0)
                     self.board[computer_chosen_index[0]][computer_chosen_index[1]] = 1
@@ -124,12 +123,11 @@ class Game(object):
                     self.board[free_fields[0][computer_chosen_index]][free_fields[1][computer_chosen_index]] = 2
                     self.check_results(free_fields[0][computer_chosen_index], free_fields[1][computer_chosen_index])
                 else:
-                    # print("MYŚLĘ")
                     board = np.copy(self.board)
                     start_time = time.time()
                     computer_chosen_index = self.min_max(board, player=2, max_depth=2,
-                                                         rating_method_one=False, random_node_choice=random_node_choice_player_2) if alpha_beta_vs_min_max or min_max_vs_min_max else self.alpha_beta(
-                        board, player=2, max_depth=3, rating_method_one=False, random_node_choice=random_node_choice_player_2)
+                                                         rating_method_one=False, random_node_choice=random_node_choice_player_2, empty_adjacent_cells_node_choice=empty_adjacent_cells_node_choice_player_2) if alpha_beta_vs_min_max or min_max_vs_min_max else self.alpha_beta(
+                        board, player=2, max_depth=3, rating_method_one=False, random_node_choice=random_node_choice_player_2, empty_adjacent_cells_node_choice=empty_adjacent_cells_node_choice_player_2)
                     self.time_of_decision_player_2 = np.append(self.time_of_decision_player_2, np.array([time.time() - start_time]),
                                                                axis=0)
                     self.board[computer_chosen_index[0]][computer_chosen_index[1]] = 2
@@ -297,10 +295,15 @@ class Game(object):
                 number_of_iteration += 1
 
     ###### MIN - MAX ######
-    def min_max(self, board, player, max_depth, rating_method_one=True, random_node_choice=False):
+    def min_max(self, board, player, max_depth, rating_method_one=True, random_node_choice=False, empty_adjacent_cells_node_choice=False):
         moves = np.argwhere(board == 0)
         if random_node_choice:
             np.random.shuffle(moves)
+        if empty_adjacent_cells_node_choice:
+            cell_values = np.array([-1 * self.count_empty_adjacent_cells(board, move[0], move[1]) for move in moves])
+            cells_choice_order = np.argsort(cell_values)
+            sorted_moves = np.array(moves)[cells_choice_order]
+            moves = sorted_moves
         best_move = moves[0]
         best_score = -np.inf
         if player == 1:
@@ -309,7 +312,7 @@ class Game(object):
             next_player = 1
         for move in moves:
             clone = self.make_move_on_board(board, move, player)
-            score = self.min_play(clone, next_player, player, max_depth, 0, rating_method_one, random_node_choice)
+            score = self.min_play(clone, next_player, player, max_depth, 0, rating_method_one, random_node_choice, empty_adjacent_cells_node_choice)
             if score > best_score:
                 # print("Nowy najlepszy wynik: " + str(score) + "Dla gracza: " + str(player))
                 best_move = move
@@ -317,7 +320,7 @@ class Game(object):
         return best_move
 
     # min - max minimizer
-    def min_play(self, board, cur_player, player, max_depth, current_depth, rating_method_one, random_node_choice):
+    def min_play(self, board, cur_player, player, max_depth, current_depth, rating_method_one, random_node_choice, empty_adjacent_cells_node_choice):
         if player == 1:
             self.number_of_nodes_searched_player_1 += 1
         else:
@@ -329,6 +332,11 @@ class Game(object):
         moves = np.argwhere(board == 0)
         if random_node_choice:
             np.random.shuffle(moves)
+        if empty_adjacent_cells_node_choice:
+            cell_values = np.array([-1 * self.count_empty_adjacent_cells(board, move[0], move[1]) for move in moves])
+            cells_choice_order = np.argsort(cell_values)
+            sorted_moves = np.array(moves)[cells_choice_order]
+            moves = sorted_moves
         best_score = np.inf
         if cur_player == 1:
             next_player = 2
@@ -336,14 +344,14 @@ class Game(object):
             next_player = 1
         for move in moves:
             clone = self.make_move_on_board(board, move, cur_player)
-            score = self.max_play(clone, next_player, player, max_depth, current_depth + 1, rating_method_one, random_node_choice)
+            score = self.max_play(clone, next_player, player, max_depth, current_depth + 1, rating_method_one, random_node_choice, empty_adjacent_cells_node_choice)
             if score < best_score:
                 best_move = move
                 best_score = score
         return best_score
 
     # min - max maximizer
-    def max_play(self, board, cur_player, player, max_depth, current_depth, rating_method_one, random_node_choice):
+    def max_play(self, board, cur_player, player, max_depth, current_depth, rating_method_one, random_node_choice, empty_adjacent_cells_node_choice):
         if player == 1:
             self.number_of_nodes_searched_player_1 += 1
         else:
@@ -355,6 +363,11 @@ class Game(object):
         moves = np.argwhere(board == 0)
         if random_node_choice:
             np.random.shuffle(moves)
+        if empty_adjacent_cells_node_choice:
+            cell_values = np.array([-1 * self.count_empty_adjacent_cells(board, move[0], move[1]) for move in moves])
+            cells_choice_order = np.argsort(cell_values)
+            sorted_moves = np.array(moves)[cells_choice_order]
+            moves = sorted_moves
         best_score = -np.inf
         if cur_player == 1:
             next_player = 2
@@ -362,17 +375,22 @@ class Game(object):
             next_player = 1
         for move in moves:
             clone = self.make_move_on_board(board, move, cur_player)
-            score = self.min_play(clone, next_player, player, max_depth, current_depth + 1, rating_method_one, random_node_choice)
+            score = self.min_play(clone, next_player, player, max_depth, current_depth + 1, rating_method_one, random_node_choice, empty_adjacent_cells_node_choice)
             if score > best_score:
                 best_move = move
                 best_score = score
         return best_score
 
     ###### ALFA - BETA CIĘCIE ######
-    def alpha_beta(self, board, player, max_depth, rating_method_one=True, random_node_choice=False):
+    def alpha_beta(self, board, player, max_depth, rating_method_one=True, random_node_choice=False, empty_adjacent_cells_node_choice=False):
         moves = np.argwhere(board == 0)
         if random_node_choice:
             np.random.shuffle(moves)
+        if empty_adjacent_cells_node_choice:
+            cell_values = np.array([-1 * self.count_empty_adjacent_cells(board, move[0], move[1]) for move in moves])
+            cells_choice_order = np.argsort(cell_values)
+            sorted_moves = np.array(moves)[cells_choice_order]
+            moves = sorted_moves
         best_move = moves[0]
         best_score = -np.inf
         beta = np.inf
@@ -383,7 +401,7 @@ class Game(object):
         for move in moves:
             clone = self.make_move_on_board(board, move, player)
             score = self.alpha_beta_minimizer(clone, best_score, beta, next_player, player, max_depth, 0,
-                                              rating_method_one, random_node_choice)
+                                              rating_method_one, random_node_choice, empty_adjacent_cells_node_choice)
             if score > best_score:
                 # print("Nowy najlepszy wynik: " + str(score) + "Dla gracza: " + str(player))
                 best_move = move
@@ -391,7 +409,7 @@ class Game(object):
         return best_move
 
     # alfa - beta minimizer
-    def alpha_beta_minimizer(self, board, alpha, beta, cur_player, player, max_depth, current_depth, rating_method_one, random_node_choice):
+    def alpha_beta_minimizer(self, board, alpha, beta, cur_player, player, max_depth, current_depth, rating_method_one, random_node_choice, empty_adjacent_cells_node_choice):
         if player == 1:
             self.number_of_nodes_searched_player_1 += 1
         else:
@@ -403,6 +421,11 @@ class Game(object):
         moves = np.argwhere(board == 0)
         if random_node_choice:
             np.random.shuffle(moves)
+        if empty_adjacent_cells_node_choice:
+            cell_values = np.array([-1 * self.count_empty_adjacent_cells(board, move[0], move[1]) for move in moves])
+            cells_choice_order = np.argsort(cell_values)
+            sorted_moves = np.array(moves)[cells_choice_order]
+            moves = sorted_moves
         best_score = np.inf
         if cur_player == 1:
             next_player = 2
@@ -411,7 +434,7 @@ class Game(object):
         for move in moves:
             clone = self.make_move_on_board(board, move, cur_player)
             score = self.alpha_beta_maximizer(clone, alpha, beta, next_player, player, max_depth, current_depth + 1,
-                                              rating_method_one, random_node_choice)
+                                              rating_method_one, random_node_choice, empty_adjacent_cells_node_choice)
             if score < best_score:
                 best_move = move
                 best_score = score
@@ -425,7 +448,7 @@ class Game(object):
         return best_score
 
     # alfa - beta maximizer
-    def alpha_beta_maximizer(self, board, alpha, beta, cur_player, player, max_depth, current_depth, rating_method_one, random_node_choice):
+    def alpha_beta_maximizer(self, board, alpha, beta, cur_player, player, max_depth, current_depth, rating_method_one, random_node_choice, empty_adjacent_cells_node_choice):
         if player == 1:
             self.number_of_nodes_searched_player_1 += 1
         else:
@@ -437,6 +460,11 @@ class Game(object):
         moves = np.argwhere(board == 0)
         if random_node_choice:
             np.random.shuffle(moves)
+        if empty_adjacent_cells_node_choice:
+            cell_values = np.array([-1 * self.count_empty_adjacent_cells(board, move[0], move[1]) for move in moves])
+            cells_choice_order = np.argsort(cell_values)
+            sorted_moves = np.array(moves)[cells_choice_order]
+            moves = sorted_moves
         best_score = -np.inf
         if cur_player == 1:
             next_player = 2
@@ -445,7 +473,7 @@ class Game(object):
         for move in moves:
             clone = self.make_move_on_board(board, move, cur_player)
             score = self.alpha_beta_minimizer(clone, alpha, beta, next_player, player, max_depth, current_depth + 1,
-                                              rating_method_one, random_node_choice)
+                                              rating_method_one, random_node_choice, empty_adjacent_cells_node_choice)
             if score > best_score:
                 best_move = move
                 best_score = score
@@ -630,3 +658,18 @@ class Game(object):
                                               else colored(element, 'red') if element == 2 else colored(element,
                                                                                                         'green')
                                               for element in row))
+
+    def count_empty_adjacent_cells(self, board, row, column):
+
+        current_empty_cell_value = 0
+
+        if row > 0 and board[row - 1][column] == 0:
+            current_empty_cell_value += 1
+        if row < 6 and board[row + 1][column] == 0:
+            current_empty_cell_value += 1
+        if column > 0 and board[row][column - 1] == 0:
+            current_empty_cell_value += 1
+        if column < 6 and board[row][column + 1] == 0:
+            current_empty_cell_value += 1
+
+        return current_empty_cell_value
