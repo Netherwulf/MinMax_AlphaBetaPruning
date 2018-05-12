@@ -12,9 +12,9 @@ class Game(object):
         2. Suma naszych punktów - punkty przeciwnika
         3. -1 * (Suma punktów przeciwnika + liczba pustych pól przy polach przeciwnika (każde puste pole liczy się tyle razy ile pól przeciwnika z nim graniczy))
     3 Heurystyki do wyboru kolejnego węzła:
-        1. Po kolei
+        1. Funkcja oceniająca sprawdzająca węzły w kolejności liczby graniczących PUSTYCH pól -> szacowanie liczby dozwolonych ruchów (im więcej dozwolonych tym większa szansa na znalezienie najlepszego)
         2. Random
-        3. Funkcja oceniająca sprawdzająca węzły w kolejności liczby graniczących PUSTYCH pól -> szacowanie liczby dozwolonych ruchów (im więcej dozwolonych tym większa szansa na znalezienie najlepszego)
+        3. Po kolei
     '''
 
     def __init__(self):
@@ -37,7 +37,7 @@ class Game(object):
         while 0 in self.board:
             # Człowiek vs AI
             if human_player_one and not cpu_vs_cpu:
-                # self.print_board()
+                self.print_board()
                 chosen_x, chosen_y = [int(x) for x in
                                       input("Podaj współrzędne x i y wybranego pola oddzielone spacją: ").split()]
                 while 0 > chosen_x or chosen_x > 6 or 0 > chosen_y or chosen_y > 6 or self.board[chosen_x][
@@ -86,7 +86,7 @@ class Game(object):
                     self.check_results(computer_chosen_index[0], computer_chosen_index[1])
                 if 0 not in self.board:
                     break
-                # self.print_board()
+                self.print_board()
                 chosen_x, chosen_y = [int(x) for x in
                                       input("Podaj współrzędne x i y wybranego pola oddzielone spacją: ").split()]
                 while 0 > chosen_x or chosen_x > 6 or 0 > chosen_y or chosen_y > 6 or 0 != self.board[chosen_x][
@@ -347,7 +347,7 @@ class Game(object):
             next_player = 1
         for move in moves:
             clone = self.make_move_on_board(board, move, cur_player)
-            score = self.max_play(clone, next_player, player, max_depth, current_depth + 1, rating_method_one, random_node_choice, empty_adjacent_cells_node_choice)
+            score = self.max_play(clone, next_player, player, max_depth, current_depth + 1, rating_method_one, rating_method_two, random_node_choice, empty_adjacent_cells_node_choice)
             if score < best_score:
                 best_move = move
                 best_score = score
@@ -381,7 +381,7 @@ class Game(object):
             next_player = 1
         for move in moves:
             clone = self.make_move_on_board(board, move, cur_player)
-            score = self.min_play(clone, next_player, player, max_depth, current_depth + 1, rating_method_one, random_node_choice, empty_adjacent_cells_node_choice)
+            score = self.min_play(clone, next_player, player, max_depth, current_depth + 1, rating_method_one, rating_method_two, random_node_choice, empty_adjacent_cells_node_choice)
             if score > best_score:
                 best_move = move
                 best_score = score
