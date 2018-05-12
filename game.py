@@ -33,11 +33,11 @@ class Game(object):
         pass
 
     def play(self, human_player_one=False, cpu_vs_cpu=False, min_max_vs_alpha_beta=False, alpha_beta_vs_min_max=False,
-             min_max_vs_min_max=False, alpha_beta_vs_alpha_beta=False, min_max_vs_human=False, rating_method_one_player_one=False, rating_method_one_player_two=False, rating_method_two_player_one=False, rating_method_two_player_two=False, random_node_choice_player_1=False, random_node_choice_player_2=False, empty_adjacent_cells_node_choice_player_1=False, empty_adjacent_cells_node_choice_player_2=False):
+             min_max_vs_min_max=False, alpha_beta_vs_alpha_beta=False, min_max_vs_human=False, rating_method_one_player_one=False, rating_method_one_player_two=False, rating_method_two_player_one=False, rating_method_two_player_two=False, random_node_choice_player_1=False, random_node_choice_player_2=False, empty_adjacent_cells_node_choice_player_1=False, empty_adjacent_cells_node_choice_player_2=False, present_results=False):
         while 0 in self.board:
             # Człowiek vs AI
             if human_player_one and not cpu_vs_cpu:
-                self.print_board()
+                # self.print_board()
                 chosen_x, chosen_y = [int(x) for x in
                                       input("Podaj współrzędne x i y wybranego pola oddzielone spacją: ").split()]
                 while 0 > chosen_x or chosen_x > 6 or 0 > chosen_y or chosen_y > 6 or self.board[chosen_x][
@@ -86,7 +86,7 @@ class Game(object):
                     self.check_results(computer_chosen_index[0], computer_chosen_index[1])
                 if 0 not in self.board:
                     break
-                self.print_board()
+                # self.print_board()
                 chosen_x, chosen_y = [int(x) for x in
                                       input("Podaj współrzędne x i y wybranego pola oddzielone spacją: ").split()]
                 while 0 > chosen_x or chosen_x > 6 or 0 > chosen_y or chosen_y > 6 or 0 != self.board[chosen_x][
@@ -97,7 +97,7 @@ class Game(object):
                 self.check_results(chosen_x, chosen_y)
             # AI vs AI
             if cpu_vs_cpu:
-                self.print_board()
+                # self.print_board()
                 # wykonywanie ruchu przez AI
                 if len(np.where(self.board != 0)[0]) < 6:
                     free_fields = np.where(self.board == 0)
@@ -116,7 +116,7 @@ class Game(object):
                     self.check_results(computer_chosen_index[0], computer_chosen_index[1])
                 if 0 not in self.board:
                     break
-                self.print_board()
+                # self.print_board()
                 # wykonywanie ruchu przez AI
                 if len(np.where(self.board != 0)[0]) < 6:
                     free_fields = np.where(self.board == 0)
@@ -134,70 +134,72 @@ class Game(object):
                     self.board[computer_chosen_index[0]][computer_chosen_index[1]] = 2
                     self.check_results(computer_chosen_index[0], computer_chosen_index[1])
         # prezentacja wyników końcowych
-        self.print_board()
-        print("Gra dobiegła końca!")
-        print("Punkty gracza 1: " + str(self.players_points[0]))
-        print("Punkty gracza 2: " + str(self.players_points[1]))
-        print("Wygrał gracz 1." if self.players_points[0] > self.players_points[1] else (
-            "Wygrał gracz 2." if self.players_points[0] < self.players_points[1] else "Gra zakończyła się remisem!"))
-        # print("Punkty w wierszach: " + "\n" + str(
-        #     np.array([self.points_per_row_column_diagonal[i] for i in range(0, 7)])))
-        # print("Punkty w kolumnach: " + "\n" + str(
-        #     np.array([self.points_per_row_column_diagonal[i] for i in range(7, 14)])))
-        # print("Punkty w przekątnych: " + "\n" + str(
-        #     np.array([self.points_per_row_column_diagonal[i] for i in range(14, 16)])))
+        if present_results:
+            self.print_board()
+            print("Gra dobiegła końca!")
+            print("Punkty gracza 1: " + str(self.players_points[0]))
+            print("Punkty gracza 2: " + str(self.players_points[1]))
+            print("Wygrał gracz 1." if self.players_points[0] > self.players_points[1] else (
+                "Wygrał gracz 2." if self.players_points[0] < self.players_points[1] else "Gra zakończyła się remisem!"))
+            # print("Punkty w wierszach: " + "\n" + str(
+            #     np.array([self.points_per_row_column_diagonal[i] for i in range(0, 7)])))
+            # print("Punkty w kolumnach: " + "\n" + str(
+            #     np.array([self.points_per_row_column_diagonal[i] for i in range(7, 14)])))
+            # print("Punkty w przekątnych: " + "\n" + str(
+            #     np.array([self.points_per_row_column_diagonal[i] for i in range(14, 16)])))
 
-        if human_player_one and not cpu_vs_cpu:
-            print("Liczba węzłów odwiedzona przez algorytm {algorithm}".format(algorithm="min-max: " if min_max_vs_human else "alfa-beta cięć: ") + str(self.number_of_nodes_searched_player_1))
-            print("Średni czas podejmowania decyzji przez algorytm {algorithm}".format(algorithm="min-max: " if min_max_vs_human else "alfa-beta cięć: ") + str(np.average(self.time_of_decision_player_1)))
-            if not min_max_vs_human:
-                print("Łaczna liczba alfa cięć wykonana przez algorytm: " + str(self.number_of_alpha_cuts_player_1))
-                print("Łaczna liczba beta cięć wykonana przez algorytm: " + str(self.number_of_beta_cuts_player_1))
-                print("Średnia liczba alfa cięć wykonana przez algorytm: " + str(self.number_of_alpha_cuts_player_1/25.0))
-                print("Średnia liczba beta cięć wykonana przez algorytm: " + str(self.number_of_beta_cuts_player_1/25.0))
+            if human_player_one and not cpu_vs_cpu:
+                print("Liczba węzłów odwiedzona przez algorytm {algorithm}".format(algorithm="min-max: " if min_max_vs_human else "alfa-beta cięć: ") + str(self.number_of_nodes_searched_player_1))
+                print("Średni czas podejmowania decyzji przez algorytm {algorithm}".format(algorithm="min-max: " if min_max_vs_human else "alfa-beta cięć: ") + str(np.average(self.time_of_decision_player_1)))
+                if not min_max_vs_human:
+                    print("Łaczna liczba alfa cięć wykonana przez algorytm: " + str(self.number_of_alpha_cuts_player_1))
+                    print("Łaczna liczba beta cięć wykonana przez algorytm: " + str(self.number_of_beta_cuts_player_1))
+                    print("Średnia liczba alfa cięć wykonana przez algorytm: " + str(self.number_of_alpha_cuts_player_1/25.0))
+                    print("Średnia liczba beta cięć wykonana przez algorytm: " + str(self.number_of_beta_cuts_player_1/25.0))
 
-        if not human_player_one and not cpu_vs_cpu:
-            print("Liczba węzłów odwiedzona przez algorytm {algorithm}".format(algorithm="min-max: " if min_max_vs_human else "alfa-beta cięć: ") + str(self.number_of_nodes_searched_player_2))
-            print("Średni czas podejmowania decyzji przez algorytm {algorithm}".format(algorithm="min-max: " if min_max_vs_human else "alfa-beta cięć: ") + str(np.average(self.time_of_decision_player_2)))
-            if not min_max_vs_human:
-                print("Łaczna liczba alfa cięć wykonana przez algorytm: " + str(self.number_of_alpha_cuts_player_2))
-                print("Łaczna liczba beta cięć wykonana przez algorytm: " + str(self.number_of_beta_cuts_player_2))
-                print("Średnia liczba alfa cięć wykonana przez algorytm: " + str(self.number_of_alpha_cuts_player_2/24.0))
-                print("Średnia liczba beta cięć wykonana przez algorytm: " + str(self.number_of_beta_cuts_player_2/24.0))
+            if not human_player_one and not cpu_vs_cpu:
+                print("Liczba węzłów odwiedzona przez algorytm {algorithm}".format(algorithm="min-max: " if min_max_vs_human else "alfa-beta cięć: ") + str(self.number_of_nodes_searched_player_2))
+                print("Średni czas podejmowania decyzji przez algorytm {algorithm}".format(algorithm="min-max: " if min_max_vs_human else "alfa-beta cięć: ") + str(np.average(self.time_of_decision_player_2)))
+                if not min_max_vs_human:
+                    print("Łaczna liczba alfa cięć wykonana przez algorytm: " + str(self.number_of_alpha_cuts_player_2))
+                    print("Łaczna liczba beta cięć wykonana przez algorytm: " + str(self.number_of_beta_cuts_player_2))
+                    print("Średnia liczba alfa cięć wykonana przez algorytm: " + str(self.number_of_alpha_cuts_player_2/24.0))
+                    print("Średnia liczba beta cięć wykonana przez algorytm: " + str(self.number_of_beta_cuts_player_2/24.0))
 
-        if cpu_vs_cpu:
-            print("Liczba węzłów odwiedzona przez Gracza 1 (algorytm {algorithm}".format(
-                algorithm="min-max): " if min_max_vs_alpha_beta or min_max_vs_min_max else "alfa-beta cięć): ") + str(
-                self.number_of_nodes_searched_player_1))
-            print("Liczba węzłów odwiedzona przez Gracza 2 (algorytm {algorithm}".format(
-                algorithm="min-max): " if alpha_beta_vs_min_max or min_max_vs_min_max else "alfa-beta cięć): ") + str(
-                self.number_of_nodes_searched_player_2))
-            print("Średni czas podejmowania decyzji przez Gracza 1 (algorytm {algorithm}".format(
-                algorithm="min-max): " if min_max_vs_alpha_beta or min_max_vs_min_max else "alfa-beta cięć): ") + str(
-                np.average(self.time_of_decision_player_1)))
-            print("Średni czas podejmowania decyzji przez Gracza 2 (algorytm {algorithm}".format(
-                algorithm="min-max): " if alpha_beta_vs_min_max or min_max_vs_min_max else "alfa-beta cięć): ") + str(
-                np.average(self.time_of_decision_player_2)))
-            if not min_max_vs_alpha_beta and not min_max_vs_min_max:
-                print("Łaczna liczba alfa cięć wykonana przez Gracza 1 (algorytm alfa-beta cięć): " + str(self.number_of_alpha_cuts_player_1))
-            if not alpha_beta_vs_min_max and not min_max_vs_min_max:
-                print("Łaczna liczba alfa cięć wykonana przez Gracza 2 (algorytm alfa-beta cięć): " + str(
-                    self.number_of_alpha_cuts_player_2))
-            if not min_max_vs_alpha_beta and not min_max_vs_min_max:
-                print("Łaczna liczba beta cięć wykonana przez Gracza 1 (algorytm alfa-beta cięć): " + str(self.number_of_beta_cuts_player_1))
-            if not alpha_beta_vs_min_max and not min_max_vs_min_max:
-                print("Łaczna liczba beta cięć wykonana przez Gracza 2 (algorytm alfa-beta cięć): " + str(
-                    self.number_of_beta_cuts_player_2))
-            if not min_max_vs_alpha_beta and not min_max_vs_min_max:
-                print("Średnia liczba alfa cięć wykonana przez Gracza 1 (algorytm alfa-beta cięć): " + str(self.number_of_alpha_cuts_player_1 / 25.0))
-            if not alpha_beta_vs_min_max and not min_max_vs_min_max:
-                print("Średnia liczba alfa cięć wykonana przez Gracza 2 (algorytm alfa-beta cięć): " + str(
-                    self.number_of_alpha_cuts_player_2 / 25.0))
-            if not min_max_vs_alpha_beta and not min_max_vs_min_max:
-                print("Średnia liczba beta cięć wykonana przez Gracza 1 (algorytm alfa-beta cięć): " + str(self.number_of_beta_cuts_player_1 / 25.0))
-            if not alpha_beta_vs_min_max and not min_max_vs_min_max:
-                print("Średnia liczba beta cięć wykonana przez Gracza 2 (algorytm alfa-beta cięć): " + str(self.number_of_beta_cuts_player_2 / 25.0))
-
+            if cpu_vs_cpu:
+                print("Liczba węzłów odwiedzona przez Gracza 1 (algorytm {algorithm}".format(
+                    algorithm="min-max): " if min_max_vs_alpha_beta or min_max_vs_min_max else "alfa-beta cięć): ") + str(
+                    self.number_of_nodes_searched_player_1))
+                print("Liczba węzłów odwiedzona przez Gracza 2 (algorytm {algorithm}".format(
+                    algorithm="min-max): " if alpha_beta_vs_min_max or min_max_vs_min_max else "alfa-beta cięć): ") + str(
+                    self.number_of_nodes_searched_player_2))
+                print("Średni czas podejmowania decyzji przez Gracza 1 (algorytm {algorithm}".format(
+                    algorithm="min-max): " if min_max_vs_alpha_beta or min_max_vs_min_max else "alfa-beta cięć): ") + str(
+                    np.average(self.time_of_decision_player_1)))
+                print("Średni czas podejmowania decyzji przez Gracza 2 (algorytm {algorithm}".format(
+                    algorithm="min-max): " if alpha_beta_vs_min_max or min_max_vs_min_max else "alfa-beta cięć): ") + str(
+                    np.average(self.time_of_decision_player_2)))
+                if not min_max_vs_alpha_beta and not min_max_vs_min_max:
+                    print("Łaczna liczba alfa cięć wykonana przez Gracza 1 (algorytm alfa-beta cięć): " + str(self.number_of_alpha_cuts_player_1))
+                if not alpha_beta_vs_min_max and not min_max_vs_min_max:
+                    print("Łaczna liczba alfa cięć wykonana przez Gracza 2 (algorytm alfa-beta cięć): " + str(
+                        self.number_of_alpha_cuts_player_2))
+                if not min_max_vs_alpha_beta and not min_max_vs_min_max:
+                    print("Łaczna liczba beta cięć wykonana przez Gracza 1 (algorytm alfa-beta cięć): " + str(self.number_of_beta_cuts_player_1))
+                if not alpha_beta_vs_min_max and not min_max_vs_min_max:
+                    print("Łaczna liczba beta cięć wykonana przez Gracza 2 (algorytm alfa-beta cięć): " + str(
+                        self.number_of_beta_cuts_player_2))
+                if not min_max_vs_alpha_beta and not min_max_vs_min_max:
+                    print("Średnia liczba alfa cięć wykonana przez Gracza 1 (algorytm alfa-beta cięć): " + str(self.number_of_alpha_cuts_player_1 / 25.0))
+                if not alpha_beta_vs_min_max and not min_max_vs_min_max:
+                    print("Średnia liczba alfa cięć wykonana przez Gracza 2 (algorytm alfa-beta cięć): " + str(
+                        self.number_of_alpha_cuts_player_2 / 25.0))
+                if not min_max_vs_alpha_beta and not min_max_vs_min_max:
+                    print("Średnia liczba beta cięć wykonana przez Gracza 1 (algorytm alfa-beta cięć): " + str(self.number_of_beta_cuts_player_1 / 25.0))
+                if not alpha_beta_vs_min_max and not min_max_vs_min_max:
+                    print("Średnia liczba beta cięć wykonana przez Gracza 2 (algorytm alfa-beta cięć): " + str(self.number_of_beta_cuts_player_2 / 25.0))
+        return 1 if self.players_points[0] > self.players_points[1] else (
+            2 if self.players_points[0] < self.players_points[1] else 3)
     # funkcja licząca punkty
     def check_results(self, row, column):
         global same_values
